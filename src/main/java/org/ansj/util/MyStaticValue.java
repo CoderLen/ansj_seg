@@ -2,12 +2,15 @@ package org.ansj.util;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 import java.util.concurrent.locks.Lock;
@@ -64,7 +67,12 @@ public class MyStaticValue {
 	 */
 	public static boolean isSkipUserDefine = false;
 
-	static {
+	/**
+	 * 
+	 * @param prop
+	 * @throws IOException
+	 */
+	public static void init(String parentPath, String propPath) throws IOException {
 		/**
 		 * 配置文件变量
 		 */
@@ -75,8 +83,10 @@ public class MyStaticValue {
 			try {
 				File find = FileFinder.find("library.properties");
 				if (find != null) {
-					rb = new PropertyResourceBundle(IOUtil.getReader(find.getAbsolutePath(), System.getProperty("file.encoding")));
-					LIBRARYLOG.info("load library not find in classPath ! i find it in " + find.getAbsolutePath() + " make sure it is your config!");
+					rb = new PropertyResourceBundle(
+							IOUtil.getReader(find.getAbsolutePath(), System.getProperty("file.encoding")));
+					LIBRARYLOG.info("load library not find in classPath ! i find it in " + find.getAbsolutePath()
+							+ " make sure it is your config!");
 				}
 			} catch (Exception e1) {
 				LIBRARYLOG.warning("not find library.properties. and err " + e.getMessage() + " i think it is a bug!");
@@ -84,7 +94,21 @@ public class MyStaticValue {
 		}
 
 		if (rb == null) {
-			LIBRARYLOG.warning("not find library.properties in classpath use it by default !");
+			LIBRARYLOG.warning("not find library.properties in classpath!");
+			LIBRARYLOG.info("load library.properties from " + propPath);
+			Properties prop = new Properties();
+			InputStream inputStream = new FileInputStream(new File(parentPath, propPath));
+			prop.load(inputStream);
+			if (prop.containsKey("userLibrary"))
+				userLibrary = new File(parentPath, prop.getProperty("userLibrary")).getAbsolutePath();
+			if (prop.containsKey("ambiguityLibrary"))
+				ambiguityLibrary = new File(parentPath, prop.getProperty("ambiguityLibrary")).getAbsolutePath();
+			if (prop.containsKey("isSkipUserDefine"))
+				isSkipUserDefine = Boolean.valueOf(prop.getProperty("isSkipUserDefine"));
+			if (prop.containsKey("isRealName"))
+				isRealName = Boolean.valueOf(prop.getProperty("isRealName"));
+			if (prop.containsKey("crfModel"))
+				crfModel = new File(parentPath, prop.getProperty("crfModel")).getAbsolutePath();
 		} else {
 
 			if (rb.containsKey("userLibrary"))

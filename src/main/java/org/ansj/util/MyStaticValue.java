@@ -62,6 +62,8 @@ public class MyStaticValue {
 
 	public static String crfModel = "library/crf.model";
 
+	public static String stopwordLibrary = "";
+
 	/**
 	 * 是否用户辞典不加载相同的词
 	 */
@@ -72,57 +74,25 @@ public class MyStaticValue {
 	 * @param prop
 	 * @throws IOException
 	 */
-	public static void init(String parentPath, String propPath) throws IOException {
+	public static void init(String parentPath, Properties prop) throws IOException {
 		/**
 		 * 配置文件变量
 		 */
-		ResourceBundle rb = null;
-		try {
-			rb = ResourceBundle.getBundle("library");
-		} catch (Exception e) {
-			try {
-				File find = FileFinder.find("library.properties");
-				if (find != null) {
-					rb = new PropertyResourceBundle(
-							IOUtil.getReader(find.getAbsolutePath(), System.getProperty("file.encoding")));
-					LIBRARYLOG.info("load library not find in classPath ! i find it in " + find.getAbsolutePath()
-							+ " make sure it is your config!");
-				}
-			} catch (Exception e1) {
-				LIBRARYLOG.warning("not find library.properties. and err " + e.getMessage() + " i think it is a bug!");
-			}
+		if (prop.containsKey("userLibrary"))
+			userLibrary = new File(parentPath, prop.getProperty("userLibrary")).getAbsolutePath();
+		if (prop.containsKey("ambiguityLibrary")) {
+			LIBRARYLOG.info("ambiguityLibrary:" + parentPath + File.separator + prop.getProperty("ambiguityLibrary"));
+			ambiguityLibrary = new File(parentPath + File.separator + prop.getProperty("ambiguityLibrary"))
+					.getAbsolutePath();
 		}
 
-		if (rb == null) {
-			LIBRARYLOG.warning("not find library.properties in classpath!");
-			LIBRARYLOG.info("load library.properties from " + propPath);
-			Properties prop = new Properties();
-			InputStream inputStream = new FileInputStream(new File(parentPath, propPath));
-			prop.load(inputStream);
-			if (prop.containsKey("userLibrary"))
-				userLibrary = new File(parentPath, prop.getProperty("userLibrary")).getAbsolutePath();
-			if (prop.containsKey("ambiguityLibrary"))
-				ambiguityLibrary = new File(parentPath, prop.getProperty("ambiguityLibrary")).getAbsolutePath();
-			if (prop.containsKey("isSkipUserDefine"))
-				isSkipUserDefine = Boolean.valueOf(prop.getProperty("isSkipUserDefine"));
-			if (prop.containsKey("isRealName"))
-				isRealName = Boolean.valueOf(prop.getProperty("isRealName"));
-			if (prop.containsKey("crfModel"))
-				crfModel = new File(parentPath, prop.getProperty("crfModel")).getAbsolutePath();
-		} else {
-
-			if (rb.containsKey("userLibrary"))
-				userLibrary = rb.getString("userLibrary");
-			if (rb.containsKey("ambiguityLibrary"))
-				ambiguityLibrary = rb.getString("ambiguityLibrary");
-			if (rb.containsKey("isSkipUserDefine"))
-				isSkipUserDefine = Boolean.valueOf(rb.getString("isSkipUserDefine"));
-			if (rb.containsKey("isRealName"))
-				isRealName = Boolean.valueOf(rb.getString("isRealName"));
-			if (rb.containsKey("crfModel"))
-				crfModel = rb.getString("crfModel");
+		if (prop.containsKey("isSkipUserDefine"))
+			isSkipUserDefine = Boolean.valueOf(prop.getProperty("isSkipUserDefine"));
+		if (prop.containsKey("isRealName"))
+			isRealName = Boolean.valueOf(prop.getProperty("isRealName"));
+		if (prop.containsKey("crfModel"))
+			crfModel = new File(parentPath, prop.getProperty("crfModel")).getAbsolutePath();
 		}
-	}
 
 	/**
 	 * 人名词典

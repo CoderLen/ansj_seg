@@ -1,9 +1,15 @@
 package org.ansj.util;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 import org.ansj.domain.Nature;
 import org.ansj.domain.Term;
@@ -15,6 +21,8 @@ import org.nlpcn.commons.lang.tire.domain.Forest;
  */
 public class FilterModifWord {
 
+	public static final Logger LIBRARYLOG = Logger.getLogger("DICLOG");
+			
 	private static Set<String> FILTER = new HashSet<String>();
 
 	private static String TAG = "#";
@@ -46,7 +54,8 @@ public class FilterModifWord {
 		List<Term> result = new ArrayList<Term>();
 		try {
 			for (Term term : all) {
-				if (FILTER.size() > 0 && (FILTER.contains(term.getName()) || (isTag && FILTER.contains(TAG + term.natrue().natureStr)))) {
+				if (FILTER.size() > 0 && (FILTER.contains(term.getName())
+						|| (isTag && FILTER.contains(TAG + term.natrue().natureStr)))) {
 					continue;
 				}
 				String[] params = UserDefineLibrary.getParams(term.getName());
@@ -56,7 +65,8 @@ public class FilterModifWord {
 				result.add(term);
 			}
 		} catch (Exception e) {
-			System.err.println("FilterStopWord.updateDic can not be null , " + "you must use set FilterStopWord.setUpdateDic(map) or use method set map");
+			System.err.println("FilterStopWord.updateDic can not be null , "
+					+ "you must use set FilterStopWord.setUpdateDic(map) or use method set map");
 		}
 		return result;
 	}
@@ -68,7 +78,8 @@ public class FilterModifWord {
 		List<Term> result = new ArrayList<Term>();
 		try {
 			for (Term term : all) {
-				if (FILTER.size() > 0 && (FILTER.contains(term.getName()) || FILTER.contains(TAG + term.natrue().natureStr))) {
+				if (FILTER.size() > 0
+						&& (FILTER.contains(term.getName()) || FILTER.contains(TAG + term.natrue().natureStr))) {
 					continue;
 				}
 				for (Forest forest : forests) {
@@ -80,8 +91,23 @@ public class FilterModifWord {
 				result.add(term);
 			}
 		} catch (Exception e) {
-			System.err.println("FilterStopWord.updateDic can not be null , " + "you must use set FilterStopWord.setUpdateDic(map) or use method set map");
+			LIBRARYLOG.info("FilterStopWord.updateDic can not be null , "
+					+ "you must use set FilterStopWord.setUpdateDic(map) or use method set map");
 		}
 		return result;
+	}
+
+	public static void init() throws IOException {
+		LIBRARYLOG.info("stopwordLibrary2:"+MyStaticValue.stopwordLibrary);
+		File file = new File(MyStaticValue.stopwordLibrary);
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), "utf-8"));
+		String word = null;
+		int count = 0;
+		while ((word = br.readLine()) != null) {
+			FilterModifWord.insertStopWord(word);
+			count ++;
+		}
+		LIBRARYLOG.info("count of stopwords is :" + count);
+		br.close();
 	}
 }
